@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>전기고래 나라</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #0044cc;
+      color: white;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #arrows {
+      display: flex;
+      gap: 10px;
+    }
+
+    #arrows button {
+      background: white;
+      color: #0044cc;
+      border: none;
+      padding: 5px 10px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    #container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    nav {
+      width: 300px;
+      background: #f2f2f2;
+      padding: 20px;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    nav li {
+      cursor: pointer;
+      padding: 10px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+      #container.menu-open main {
+        display: none;
+      }
+      #container.page-open nav {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div>📚 전기고래 나라</div>
+    <div id="arrows">
+      <button onclick="goBack()">⬅️ 이전</button>
+      <button onclick="goForward()">➡️ 다음</button>
+    </div>
+  </header>
+
+  <div id="container" class="menu-open">
+    <nav>
+      <ul>
+        <li onclick="loadPage(event, 'Data/1.html')">1. 계기식별정보 - 고유정보</li>
+        <li onclick="loadPage(event, 'Data/2.html')">2. 계량 - 계량모드</li>
+        <li onclick="loadPage(event, 'Data/3.html')">3. 계량 - 전력량</li>
+        <li onclick="loadPage(event, 'Data/4.html')">4. 계량 - 역률</li>
+      </ul>
+    </nav>
+
+    <main id="content">
+      <h1>전기고래 나라에 오신 것을 환영합니다!</h1>
+      <p>왼쪽 메뉴에서 선택하세요.</p>
+    </main>
+  </div>
+
+  <script>
+    const historyStack = ['home']; // 'home'을 시작점으로 등록
+    let historyIndex = 0;
+
+    function loadPage(event, filename) {
+      event.stopPropagation(); // 상위 클릭 방지
+      fetch(filename)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('페이지를 불러올 수 없습니다.');
+          }
+          return response.text();
+        })
+        .then(html => {
+          document.getElementById('content').innerHTML = html;
+          if (window.innerWidth <= 768) {
+            document.getElementById('container').className = 'page-open';
+          }
+          historyStack.splice(historyIndex + 1); // 앞으로 가는 길 지우기
+          historyStack.push(filename);
+          historyIndex++;
+        })
+        .catch(error => {
+          document.getElementById('content').innerHTML = '<h2>페이지를 불러오는데 실패했습니다.</h2>';
+        });
+    }
+
+    function showPage(filename) {
+      if (filename === 'home') {
+        document.getElementById('content').innerHTML = `
+          <h1>전기고래 나라에 오신 것을 환영합니다!</h1>
+          <p>왼쪽 메뉴에서 선택하세요.</p>`;
+        document.getElementById('container').className = 'menu-open';
+      } else {
+        fetch(filename)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('페이지를 불러올 수 없습니다.');
+            }
+            return response.text();
+          })
+          .then(html => {
+            document.getElementById('content').innerHTML = html;
+            if (window.innerWidth <= 768) {
+              document.getElementById('container').className = 'page-open';
+            }
+          })
+          .catch(error => {
+            document.getElementById('content').innerHTML = '<h2>페이지를 불러오는데 실패했습니다.</h2>';
+          });
+      }
+    }
+
+    function goBack() {
+      historyIndex = 0; // 무조건 home
+      showPage(historyStack[0]);
+    }
+
+    function goForward() {
+      if (historyIndex < historyStack.length - 1) {
+        historyIndex++;
+        showPage(historyStack[historyIndex]);
+      }
+    }
+  </script>
+</body>
+</html>
